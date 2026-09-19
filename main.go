@@ -6,10 +6,31 @@ import (
 	"go_train/models"
 	"go_train/services"
 	"net/http"
+	"time"
 )
 
 func helloWorld(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Hello World")
+}
+
+func logger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.Method, r.URL.Path)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func timer(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		next.ServeHTTP(w, r)
+
+		elapsed := time.Since(start)
+
+		fmt.Println("TIMER:", r.Method, r.URL.Path, "took", elapsed)
+	})
 }
 
 func main() {
@@ -65,6 +86,6 @@ func main() {
 	mux.HandleFunc("DELETE /players/{id}", deletePlayer)
 
 	fmt.Println("Server started on :8080")
-	http.ListenAndServe(":8080", mux)
+	http.ListenAndServe(":8080", timer(logger(mux)))
 
 }
