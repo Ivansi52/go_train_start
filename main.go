@@ -8,6 +8,10 @@ import (
 	"net/http"
 )
 
+func helloWorld(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Hello World")
+}
+
 func main() {
 	service := services.PlayerService{}
 
@@ -25,36 +29,16 @@ func main() {
 		Online:   false,
 	})
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello World")
-	})
+	getPlayers := func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "List of all players")
+	}
 
-	http.HandleFunc("/player", func(w http.ResponseWriter, r *http.Request) {
-		nickname := r.URL.Query().Get("nickname")
-		if nickname == "" {
-			//status code bad request
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintln(w, "Nickname is empty")
-			return
-		}
+	getPlayer := func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		fmt.Fprintln(w, "Get player with id", id)
+	}
 
-		player, err := service.FindPlayer(nickname)
-		if err != nil {
-			//not found
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprintln(w, "Not Found")
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		jsonErr := json.NewEncoder(w).Encode(player)
-		if jsonErr != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintln(w, "JSON Encode Error")
-		}
-	})
-
-	http.HandleFunc("/player", func(w http.ResponseWriter, r *http.Request) {
+	addPlayer := func(w http.ResponseWriter, r *http.Request) {
 		player := models.Player{}
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&player)
@@ -66,8 +50,21 @@ func main() {
 		}
 		service.AddPlayer(player)
 		json.NewEncoder(w).Encode(player)
-	})
+	}
+
+	deletePlayer := func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		fmt.Fprintln(w, "Deleted player with id: ", id)
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /", helloWorld)
+	mux.HandleFunc("GET /players", getPlayers)
+	mux.HandleFunc("GET /players/{id}", getPlayer)
+	mux.HandleFunc("POST /players", addPlayer)
+	mux.HandleFunc("DELETE /players/{id}", deletePlayer)
 
 	fmt.Println("Server started on :8080")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", mux)
+
 }
