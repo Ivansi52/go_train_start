@@ -10,35 +10,31 @@ type PlayerService struct {
 	players []models.Player
 }
 
-func (s *PlayerService) AddPlayer(player models.Player) {
+func (s *PlayerService) AddPlayer(player models.Player) models.Player {
 	s.players = append(s.players, player)
+	return player
 }
 
-func (s *PlayerService) PrintPlayers() {
-	for _, player := range s.players {
-		fmt.Println(
-			player.Nickname,
-			player.Level,
-			player.Gold,
-			player.Online,
-		)
-	}
+func (s *PlayerService) GetPlayers() []models.Player {
+	return s.players
 }
 
-func (s *PlayerService) FindPlayer(nickname string) (models.Player, error) {
+func (s *PlayerService) FindPlayer(id string) (models.Player, error) {
 	for _, player := range s.players {
-		if player.Nickname == nickname {
+		if player.Id == id {
 			return player, nil
 		}
 	}
 
-	return models.Player{}, errors.New("player with this nickname does not exist")
+	return models.Player{}, errors.New("player with this id does not exist")
 }
 
-func (s *PlayerService) GetFirstPlayer() (models.Player, error) {
-	if len(s.players) == 0 {
-		return models.Player{}, errors.New("not found")
+func (s *PlayerService) DeletePlayer(id string) error {
+	for i, player := range s.players {
+		if player.Id == id {
+			s.players = append(s.players[:i], s.players[i+1:]...)
+			return nil
+		}
 	}
-
-	return s.players[0], nil
+	return errors.New("player not found")
 }

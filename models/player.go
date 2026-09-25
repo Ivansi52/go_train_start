@@ -1,6 +1,7 @@
 package models
 
 type Player struct {
+	Id       string `json:"id"`
 	Nickname string `json:"nickname"`
 	Level    int    `json:"level"`
 	Gold     int    `json:"gold"`
