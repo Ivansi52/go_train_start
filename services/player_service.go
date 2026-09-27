@@ -1,40 +1,32 @@
 package services
 
 import (
-	"errors"
-	"fmt"
 	"go_train/models"
+	"go_train/repositories"
 )
 
 type PlayerService struct {
-	players []models.Player
+	repository *repositories.PlayerRepository
 }
 
-func (s *PlayerService) AddPlayer(player models.Player) models.Player {
-	s.players = append(s.players, player)
-	return player
+func (s *PlayerService) Add(player models.Player) models.Player {
+	return s.repository.Add(player)
 }
 
 func (s *PlayerService) GetPlayers() []models.Player {
-	return s.players
+	return s.repository.GetAll()
 }
 
 func (s *PlayerService) FindPlayer(id string) (models.Player, error) {
-	for _, player := range s.players {
-		if player.Id == id {
-			return player, nil
-		}
-	}
-
-	return models.Player{}, errors.New("player with this id does not exist")
+	return s.repository.GetByID(id)
 }
 
 func (s *PlayerService) DeletePlayer(id string) error {
-	for i, player := range s.players {
-		if player.Id == id {
-			s.players = append(s.players[:i], s.players[i+1:]...)
-			return nil
-		}
+	return s.repository.Delete(id)
+}
+
+func NewPlayerService(repository *repositories.PlayerRepository) *PlayerService {
+	return &PlayerService{
+		repository: repository,
 	}
-	return errors.New("player not found")
 }

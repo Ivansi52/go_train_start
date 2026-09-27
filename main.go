@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go_train/models"
+	"go_train/repositories"
 	"go_train/services"
 	"net/http"
 	"time"
@@ -34,16 +35,17 @@ func timer(next http.Handler) http.Handler {
 }
 
 func main() {
-	service := services.PlayerService{}
+	repository := repositories.PlayerRepository{}
+	service := services.NewPlayerService(&repository)
 
-	service.AddPlayer(models.Player{
+	service.Add(models.Player{
 		Nickname: "Ivan",
 		Level:    20,
 		Gold:     1500,
 		Online:   true,
 	})
 
-	service.AddPlayer(models.Player{
+	service.Add(models.Player{
 		Nickname: "Oleg",
 		Level:    33,
 		Gold:     800,
@@ -80,7 +82,7 @@ func main() {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		createdPlayer := service.AddPlayer(player)
+		createdPlayer := service.Add(player)
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(createdPlayer)
 	}
